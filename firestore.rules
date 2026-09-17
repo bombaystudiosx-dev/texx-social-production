@@ -50,9 +50,12 @@ service cloud.firestore {
         allow write: if isOwner(uid);
       }
 
-      // Private to the owner.
+      // Private to the owner, except: anyone may check the single doc
+      // matching their own uid, to answer "did this user block me" (used
+      // by follow/message gating) without exposing the rest of the list.
       match /blocked/{blockedUid} {
-        allow read, write: if isOwner(uid);
+        allow read: if isOwner(uid) || isOwner(blockedUid);
+        allow write: if isOwner(uid);
       }
 
       // Private to the owner.
