@@ -116,7 +116,11 @@ service cloud.firestore {
     // send; membership is fixed at creation (participantIds never changes).
     // ---------------------------------------------------------------------
     match /conversations/{conversationId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      // resource is null for a not-yet-created doc; guard before reading
+      // resource.data so getOrCreateConversation's existence check sees a
+      // clean "not found" instead of a permission error.
+      allow read: if isSignedIn() &&
+        (resource == null || request.auth.uid in resource.data.participantIds);
       allow create: if isSignedIn() &&
         request.auth.uid in request.resource.data.participantIds &&
         request.resource.data.participantIds.size() == 2;
