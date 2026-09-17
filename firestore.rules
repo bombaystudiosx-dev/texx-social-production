@@ -1,0 +1,123 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // A write that only touches `field` and changes it by exactly 1 in
+    // either direction. Used to let any signed-in user bump a shared
+    // counter (likesCount, commentsCount) without letting them set it to an
+    // arbitrary value — the real source of truth is the paired
+    // like/comment subdocument, which has its own ownership rule below.
+    function isSingleCounterBump(field) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([field]) &&
+        (request.resource.data[field] - resource.data[field] == 1 ||
+         request.resource.data[field] - resource.data[field] == -1);
+    }
+
+    // ---------------------------------------------------------------------
+    // users
+    // ---------------------------------------------------------------------
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if isOwner(uid) &&
+        request.resource.data.accountType in ['personal', 'artist', 'business'] &&
+        request.resource.data.role == 'user' &&
+        request.resource.data.accountStatus == 'active';
+      // Owner can edit their own profile, but never grant themselves a role
+      // or reinstate a suspended/banned account from the client.
+      allow update: if isOwner(uid) &&
+        request.resource.data.role == resource.data.role &&
+        (request.resource.data.accountStatus == resource.data.accountStatus ||
+         (resource.data.accountStatus == 'active' && request.resource.data.accountStatus == 'deactivated') ||
+         (resource.data.accountStatus == 'deactivated' && request.resource.data.accountStatus == 'active'));
+      allow delete: if false;
+
+      match /followers/{followerId} {
+        allow read: if true;
+        allow write: if isOwner(followerId) || isOwner(uid);
+      }
+
+      match /following/{followingId} {
+        allow read: if true;
+        allow write: if isOwner(uid);
+      }
+
+      // Private to the owner.
+      match /blocked/{blockedUid} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Private to the owner.
+      match /savedPosts/{postId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Written by the acting user into the recipient's subcollection;
+      // the recipient may only ever flip `read`, never rewrite content.
+      match /notifications/{notificationId} {
+        allow read, delete: if isOwner(uid);
+        allow create: if isSignedIn() &&
+          request.resource.data.actorId == request.auth.uid &&
+          request.resource.data.read == false;
+        allow update: if isOwner(uid) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // posts
+    // ---------------------------------------------------------------------
+    match /posts/{postId} {
+      allow read: if resource.data.status == 'published' || isSignedIn();
+      allow create: if isSignedIn() &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.status == 'published' &&
+        request.resource.data.likesCount == 0 &&
+        request.resource.data.commentsCount == 0;
+      allow update: if isSignedIn() && (
+        resource.data.authorId == request.auth.uid ||
+        isSingleCounterBump('likesCount') ||
+        isSingleCounterBump('commentsCount')
+      );
+      allow delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() &&
+          request.resource.data.authorId == request.auth.uid &&
+          request.resource.data.text.size() > 0 &&
+          request.resource.data.text.size() <= 500;
+        allow delete: if isSignedIn() && (
+          resource.data.authorId == request.auth.uid ||
+          get(/databases/$(database)/documents/posts/$(postId)).data.authorId == request.auth.uid
+        );
+        allow update: if false;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // reports — write-only from the client. Reading/resolving reports is a
+    // moderator/admin action that must go through a trusted server context
+    // (Firebase Admin SDK), not exposed to any client here.
+    // ---------------------------------------------------------------------
+    match /reports/{reportId} {
+      allow create: if isSignedIn() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.status == 'open';
+      allow read, update, delete: if false;
+    }
+  }
+}
