@@ -103,6 +103,28 @@ export type NotificationType =
   | "message"
   | "share";
 
+export interface Conversation {
+  id: string;
+  participantIds: string[];
+  participants: Record<
+    string,
+    { username: string; displayName: string; photoURL: string }
+  >;
+  lastMessageText: string;
+  lastMessageAt: Timestamp | null;
+  lastMessageSenderId: string | null;
+  unreadCounts: Record<string, number>;
+  createdAt: Timestamp;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  text: string;
+  createdAt: Timestamp;
+}
+
 export interface AppNotification {
   id: string;
   type: NotificationType;

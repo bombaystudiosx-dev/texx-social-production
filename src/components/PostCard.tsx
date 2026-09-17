@@ -9,6 +9,7 @@ import { toggleLike, isPostLikedByUser, deletePost } from "@/lib/posts";
 import { addComment, subscribeToComments } from "@/lib/comments";
 import { isPostSaved, toggleSavePost } from "@/lib/savedPosts";
 import { submitReport } from "@/lib/moderation";
+import { avatarUrl } from "@/lib/avatar";
 import type { Comment, Post } from "@/types";
 import toast from "react-hot-toast";
 
@@ -133,14 +134,12 @@ export default function PostCard({ post }: { post: Post }) {
         <Link href={`/profile/${post.author.username}`}>
           <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-[2px] flex-shrink-0">
             <div className="w-full h-full rounded-full bg-neutral-700 overflow-hidden ring-2 ring-black">
-              {post.author.photoURL && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={post.author.photoURL}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl(post.authorId, post.author.photoURL)}
+                alt=""
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </Link>
@@ -235,6 +234,14 @@ export default function PostCard({ post }: { post: Post }) {
             <div className="mt-3 border-t border-neutral-800 pt-3 space-y-3">
               {comments.map((c) => (
                 <div key={c.id} className="flex gap-2 text-sm">
+                  <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-neutral-700">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={avatarUrl(c.authorId, c.author.photoURL)}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <span className="font-semibold">{c.author.displayName}</span>
                   <span className="text-neutral-300 break-words">{c.text}</span>
                 </div>

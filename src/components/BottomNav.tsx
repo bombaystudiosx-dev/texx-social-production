@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Home, Compass, PlusSquare, User as UserIcon, LogIn } from "lucide-react";
+import { Home, Compass, PlusSquare, User as UserIcon } from "lucide-react";
 
 export default function BottomNav() {
   const { user, profile } = useAuth();
@@ -12,16 +12,18 @@ export default function BottomNav() {
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
 
+  if (!user) return null;
+
   const profileHref = profile ? `/profile/${profile.username}` : "/login";
 
   const items = [
     { href: "/", icon: Home, label: "Home", active: isActive("/") && pathname === "/" },
     { href: "/explore", icon: Compass, label: "Explore", active: isActive("/explore") },
-    { href: user ? "/#compose" : "/login", icon: PlusSquare, label: "Post", active: false },
+    { href: "/#compose", icon: PlusSquare, label: "Post", active: false },
     {
       href: profileHref,
-      icon: user ? UserIcon : LogIn,
-      label: user ? "Profile" : "Log in",
+      icon: UserIcon,
+      label: "Profile",
       active: isActive("/profile"),
     },
   ];

@@ -25,3 +25,45 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/*
+ * Light theme override — toggled via <html data-theme="light"> from
+ * ThemeContext. The app's designed surface is dark (bg-black / neutral-900);
+ * this layer remaps that exact palette for viewers who prefer light, without
+ * touching component markup or the dark design itself (which stays the
+ * default and is pixel-identical to before this existed).
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="light"] body,
+:root[data-theme="light"] .bg-black {
+  background-color: #ffffff !important;
+}
+:root[data-theme="light"] .bg-black\/80 { background-color: rgba(255, 255, 255, 0.85) !important; }
+:root[data-theme="light"] .bg-black\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+:root[data-theme="light"] .bg-black\/60,
+:root[data-theme="light"] .bg-black\/70 { background-color: rgba(255, 255, 255, 0.8) !important; }
+
+:root[data-theme="light"] .bg-neutral-900 { background-color: #f4f4f5 !important; }
+:root[data-theme="light"] .bg-neutral-800 { background-color: #e4e4e7 !important; }
+:root[data-theme="light"] .bg-neutral-700 { background-color: #d4d4d8 !important; }
+:root[data-theme="light"] .bg-neutral-950\/50:hover { background-color: rgba(0, 0, 0, 0.035) !important; }
+:root[data-theme="light"] .hover\:bg-neutral-800:hover { background-color: #e4e4e7 !important; }
+:root[data-theme="light"] .hover\:bg-neutral-950\/50:hover { background-color: rgba(0, 0, 0, 0.035) !important; }
+
+:root[data-theme="light"] .border-black,
+:root[data-theme="light"] .ring-black { border-color: #ffffff !important; }
+:root[data-theme="light"] .border-neutral-800 { border-color: #e4e4e7 !important; }
+:root[data-theme="light"] .border-neutral-700 { border-color: #d4d4d8 !important; }
+
+:root[data-theme="light"] .text-white { color: #18181b !important; }
+:root[data-theme="light"] .text-white\/70 { color: rgba(24, 24, 27, 0.7) !important; }
+:root[data-theme="light"] .text-neutral-100 { color: #27272a !important; }
+:root[data-theme="light"] .text-neutral-200 { color: #3f3f46 !important; }
+:root[data-theme="light"] .text-neutral-300 { color: #52525b !important; }
+:root[data-theme="light"] .text-neutral-400,
+:root[data-theme="light"] .placeholder-neutral-500::placeholder { color: #71717a !important; }
+:root[data-theme="light"] .text-neutral-500 { color: #71717a !important; }
+:root[data-theme="light"] .text-neutral-600 { color: #a1a1aa !important; }

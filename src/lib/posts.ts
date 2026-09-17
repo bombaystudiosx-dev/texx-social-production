@@ -14,8 +14,6 @@ import {
   deleteDoc,
   setDoc,
   getDoc,
-  type QueryDocumentSnapshot,
-  type DocumentData,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
@@ -86,22 +84,25 @@ export function subscribeToFeed(
 }
 
 /**
- * Cursor-paginated feed for "load more" — replaces the old hard 50-post cap.
- * Pass the last document snapshot from the previous page as `cursor`.
+ * "Load more" for the feed — replaces the old hard 50-post cap. Takes the
+ * oldest currently-shown post's createdAt as the cursor, so it works
+ * directly off the plain Post[] state the real-time feed already holds
+ * (no need to thread raw Firestore document snapshots through the UI).
  */
-export async function loadFeedPage(
-  cursor?: QueryDocumentSnapshot<DocumentData> | null,
+export async function loadOlderPosts(
+  before: Post["createdAt"],
   pageSize = FEED_PAGE_SIZE
 ) {
-  const constraints = [
-    orderBy("createdAt", "desc"),
-    ...(cursor ? [startAfter(cursor)] : []),
-    limit(pageSize),
-  ];
-  const snap = await getDocs(query(collection(db, "posts"), ...constraints));
+  const snap = await getDocs(
+    query(
+      collection(db, "posts"),
+      orderBy("createdAt", "desc"),
+      startAfter(before),
+      limit(pageSize)
+    )
+  );
   return {
     posts: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post),
-    lastDoc: snap.docs[snap.docs.length - 1] ?? null,
     hasMore: snap.docs.length === pageSize,
   };
 }

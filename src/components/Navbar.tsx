@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
+import MessagesIcon from "@/components/MessagesIcon";
 
 export default function Navbar() {
   const { user, logOut } = useAuth();
@@ -21,7 +22,11 @@ export default function Navbar() {
 
         {user ? (
           <div className="flex items-center gap-4">
+            <MessagesIcon />
             <NotificationBell />
+            <Link href="/settings" className="text-neutral-500 hover:text-neutral-200" title="Settings">
+              <Settings size={20} />
+            </Link>
             <button
               onClick={() => logOut()}
               className="text-neutral-500 hover:text-red-400"

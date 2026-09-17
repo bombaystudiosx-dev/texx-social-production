@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Anton } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
+import AuthGate from "@/components/AuthGate";
 import FirebaseSetupNotice from "@/components/FirebaseSetupNotice";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
@@ -45,14 +47,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-black text-white">
         {isFirebaseConfigured ? (
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-1 w-full max-w-2xl mx-auto border-x border-neutral-800 min-h-screen pb-16">
-              {children}
-            </main>
-            <BottomNav />
-            <Toaster position="bottom-center" toastOptions={{ style: { marginBottom: "3.5rem" } }} />
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <Navbar />
+              <main className="flex-1 w-full max-w-2xl mx-auto border-x border-neutral-800 min-h-screen pb-16">
+                <AuthGate>{children}</AuthGate>
+              </main>
+              <BottomNav />
+              <Toaster position="bottom-center" toastOptions={{ style: { marginBottom: "3.5rem" } }} />
+            </AuthProvider>
+          </ThemeProvider>
         ) : (
           <FirebaseSetupNotice />
         )}

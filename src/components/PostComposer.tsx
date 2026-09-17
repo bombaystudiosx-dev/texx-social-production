@@ -4,6 +4,7 @@ import { useState, useRef, FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { createPost } from "@/lib/posts";
 import { isCloudinaryConfigured } from "@/lib/cloudinary";
+import { avatarUrl } from "@/lib/avatar";
 import { ImageIcon, X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -61,10 +62,8 @@ export default function PostComposer() {
       <div className="flex gap-3">
         <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-[2px] flex-shrink-0">
           <div className="w-full h-full rounded-full bg-neutral-700 overflow-hidden ring-2 ring-black">
-            {profile.photoURL && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.photoURL} alt="" className="w-full h-full object-cover" />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={avatarUrl(user.uid, profile.photoURL)} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
         <div className="flex-1">

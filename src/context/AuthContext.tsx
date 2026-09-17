@@ -106,9 +106,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+        const userRef = doc(db, "users", firebaseUser.uid);
+        const snap = await getDoc(userRef);
         if (snap.exists()) {
-          setProfile(snap.data() as UserProfile);
+          const data = snap.data() as UserProfile;
+          if (data.accountStatus === "deactivated") {
+            await setDoc(userRef, { accountStatus: "active" }, { merge: true });
+            data.accountStatus = "active";
+          }
+          setProfile(data);
         } else {
           setProfile(null);
         }

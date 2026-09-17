@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import Link from "next/link";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { subscribeToUserPosts } from "@/lib/posts";
 import { isFollowing, toggleFollow } from "@/lib/follow";
 import { isBlocked, blockUser, unblockUser, submitReport } from "@/lib/moderation";
+import { getOrCreateConversation } from "@/lib/messages";
 import PostCard from "@/components/PostCard";
 import { audienceLabel } from "@/types";
+import { avatarUrl } from "@/lib/avatar";
 import type { Post, UserProfile } from "@/types";
-import { MoreHorizontal, Flag, Ban, ShieldCheck } from "lucide-react";
+import { MoreHorizontal, Flag, Ban, ShieldCheck, MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function ProfilePage({
@@ -19,6 +23,7 @@ export default function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = use(params);
+  const router = useRouter();
   const { user, profile: myProfile } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -111,6 +116,32 @@ export default function ProfilePage({
     }
   };
 
+  const handleMessage = async () => {
+    if (!user || !myProfile || !profile) {
+      toast.error("Log in to send messages.");
+      return;
+    }
+    try {
+      const id = await getOrCreateConversation(
+        user.uid,
+        {
+          username: myProfile.username,
+          displayName: myProfile.displayName,
+          photoURL: myProfile.photoURL,
+        },
+        profile.uid,
+        {
+          username: profile.username,
+          displayName: profile.displayName,
+          photoURL: profile.photoURL,
+        }
+      );
+      router.push(`/messages/${id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start conversation.");
+    }
+  };
+
   const handleReport = async () => {
     if (!user || !profile) return;
     setMenuOpen(false);
@@ -142,33 +173,45 @@ export default function ProfilePage({
 
   return (
     <div>
-      <div className="h-32 bg-neutral-800" />
+      <div className="h-32 bg-neutral-800 overflow-hidden">
+        {profile.bannerURL && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={profile.bannerURL} alt="" className="w-full h-full object-cover" />
+        )}
+      </div>
       <div className="p-4 border-b border-neutral-800">
         <div className="flex justify-between items-start -mt-14">
           <div className="w-24 h-24 rounded-full bg-neutral-700 border-4 border-black overflow-hidden">
-            {profile.photoURL && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profile.photoURL}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={avatarUrl(profile.uid, profile.photoURL)}
+              alt=""
+              className="w-full h-full object-cover"
+            />
           </div>
           {!isMe && (
             <div className="flex items-center gap-2 mt-16">
               {!blocked && (
-                <button
-                  onClick={handleFollow}
-                  disabled={followBusy}
-                  className={`rounded-full px-5 py-2 font-semibold ${
-                    following
-                      ? "border border-neutral-700 hover:border-red-500 hover:text-red-400"
-                      : "bg-white text-black hover:bg-neutral-200"
-                  } disabled:opacity-50`}
-                >
-                  {following ? "Following" : "Follow"}
-                </button>
+                <>
+                  <button
+                    onClick={handleMessage}
+                    className="rounded-full border border-neutral-700 p-2 text-neutral-300 hover:text-white hover:border-neutral-500"
+                    title="Message"
+                  >
+                    <MessageCircle size={18} />
+                  </button>
+                  <button
+                    onClick={handleFollow}
+                    disabled={followBusy}
+                    className={`rounded-full px-5 py-2 font-semibold ${
+                      following
+                        ? "border border-neutral-700 hover:border-red-500 hover:text-red-400"
+                        : "bg-white text-black hover:bg-neutral-200"
+                    } disabled:opacity-50`}
+                  >
+                    {following ? "Following" : "Follow"}
+                  </button>
+                </>
               )}
               <div className="relative">
                 <button
@@ -196,6 +239,14 @@ export default function ProfilePage({
                 )}
               </div>
             </div>
+          )}
+          {isMe && (
+            <Link
+              href="/settings"
+              className="mt-16 rounded-full border border-neutral-700 px-4 py-2 font-semibold text-sm text-neutral-200 hover:bg-neutral-900"
+            >
+              Edit Profile
+            </Link>
           )}
         </div>
         <div className="flex items-center gap-2 mt-3">
