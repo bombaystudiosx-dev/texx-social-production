@@ -50,13 +50,18 @@ body {
 :root[data-theme="light"] .bg-neutral-800 { background-color: #e4e4e7 !important; }
 :root[data-theme="light"] .bg-neutral-700 { background-color: #d4d4d8 !important; }
 :root[data-theme="light"] .bg-neutral-950\/50:hover { background-color: rgba(0, 0, 0, 0.035) !important; }
-:root[data-theme="light"] .hover\:bg-neutral-800:hover { background-color: #e4e4e7 !important; }
+:root[data-theme="light"] .hover\:bg-neutral-800:hover,
+:root[data-theme="light"] .hover\:bg-neutral-900:hover { background-color: #e4e4e7 !important; }
+:root[data-theme="light"] .hover\:bg-neutral-950:hover,
 :root[data-theme="light"] .hover\:bg-neutral-950\/50:hover { background-color: rgba(0, 0, 0, 0.035) !important; }
 
 :root[data-theme="light"] .border-black,
 :root[data-theme="light"] .ring-black { border-color: #ffffff !important; }
 :root[data-theme="light"] .border-neutral-800 { border-color: #e4e4e7 !important; }
-:root[data-theme="light"] .border-neutral-700 { border-color: #d4d4d8 !important; }
+:root[data-theme="light"] .border-neutral-700,
+:root[data-theme="light"] .hover\:border-neutral-500:hover { border-color: #d4d4d8 !important; }
+:root[data-theme="light"] .hover\:text-neutral-200:hover,
+:root[data-theme="light"] .hover\:text-neutral-300:hover { color: #3f3f46 !important; }
 
 :root[data-theme="light"] .text-white { color: #18181b !important; }
 :root[data-theme="light"] .text-white\/70 { color: rgba(24, 24, 27, 0.7) !important; }
